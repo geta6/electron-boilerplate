@@ -24,7 +24,7 @@ const WATCH = process.argv.includes('--watch') || process.argv.includes('watch')
 
 defaults(process.env, {
   NODE_ENV: DEBUG ? 'development' : 'production',
-  ELECTRON: '0.35.1',
+  ELECTRON: '0.35.2',
   ARCHITECTURE: 'all',
 });
 
@@ -84,15 +84,17 @@ gulp.task('release', async () => {
     cache: './tmp/cache',
   });
   if (os.platform() === 'darwin') {
-    for (const index in appPaths) if (appPaths.hasOwnProperty(index)) {
-      const origin = appPaths[index];
-      const target = `${origin}-v${version}.zip`;
-      process.stdout.write(`Archiving app for platform ${origin.replace(/^.+-(.+?)-([^-]+?)$/, '$1 $2')}`);
-      const start = Date.now();
-      await exec(`ditto -ck --rsrc --sequesterRsrc "${origin}" "${target}"`);
-      const osize = (await exec(`du -sh "${origin}" | cut -f1`)).stdout;
-      const tsize = (await exec(`du -sh "${target}" | cut -f1`)).stdout;
-      process.stdout.write(`  ${osize.trim()} -> ${tsize.trim()} (${Date.now() - start}ms)\n`);
+    for (const index in appPaths) {
+      if (appPaths.hasOwnProperty(index)) {
+        const origin = appPaths[index];
+        const target = `${origin}-v${version}.zip`;
+        process.stdout.write(`Archiving app for platform ${origin.replace(/^.+-(.+?)-([^-]+?)$/, '$1 $2')}`);
+        const start = Date.now();
+        await exec(`ditto -ck --rsrc --sequesterRsrc "${origin}" "${target}"`);
+        const osize = (await exec(`du -sh "${origin}" | cut -f1`)).stdout;
+        const tsize = (await exec(`du -sh "${target}" | cut -f1`)).stdout;
+        process.stdout.write(`  ${osize.trim()} -> ${tsize.trim()} (${Date.now() - start}ms)\n`);
+      }
     }
   } else {
     util.log('Archiver only works in osx.');
